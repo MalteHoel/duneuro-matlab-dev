@@ -1,2 +1,2 @@
-add_executable("duneuro-matlab" duneuro-matlab.cc)
-target_link_dune_default_libraries("duneuro-matlab")
+matlab_add_mex(NAME duneuro_matlab SRC duneuro-matlab.cc)
+dune_symlink_to_source_files(FILES duneuro_eeg.m)
