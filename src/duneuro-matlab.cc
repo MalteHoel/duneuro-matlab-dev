@@ -96,6 +96,17 @@ std::vector<Dune::FieldVector<double, 3>> extractElectrodes(const mxArray* arr)
   return output;
 }
 
+std::unique_ptr<const duneuro::DenseMatrix<double>> extractDenseMatrix(mxArray* arr)
+{
+  if (!mxIsDouble(arr)) {
+    mexErrMsgTxt("expected double matrix for electrodes");
+  }
+  int rows = mxGetM(arr);
+  int cols = mxGetN(arr);
+  double* ptr = mxGetPr(arr);
+  return Dune::Std::make_unique<duneuro::DenseMatrix<double>>(cols, rows, ptr);
+}
+
 void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
 {
   try {
@@ -117,8 +128,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
       plhs[0] = convertPtr2Mat(duneuro::EEGDriverFactory::make_eeg_driver(config).release());
       std::cout << "created and lock called\n";
     } else if (command == "solve_direct") {
-      if (nrhs < 3) {
-        mexErrMsgTxt("please provide a handle to the object and the dipoles");
+      if (nrhs < 4) {
+        mexErrMsgTxt("please provide a handle to the object, the electrodes and the dipoles");
         return;
       }
       if (nlhs != 1) {
@@ -129,13 +140,49 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
       auto electrodes = extractElectrodes(prhs[2]);
       auto dipoles = extractDipoles(prhs[3]);
       foo->setElectrodes(electrodes);
-      std::cout << "creating matrix with " << electrodes.size() << " rows and " << dipoles.size() << " cols\n";
+      std::cout << "creating matrix with " << electrodes.size() << " rows and " << dipoles.size()
+                << " cols\n";
       plhs[0] = mxCreateDoubleMatrix(electrodes.size(), dipoles.size(), mxREAL);
       auto ptr = mxGetPr(plhs[0]);
       auto solution = foo->makeDomainFunction();
       for (unsigned int i = 0; i != dipoles.size(); ++i, ptr += electrodes.size()) {
         foo->solve(dipoles[i], solution);
         auto ae = foo->evaluateAtElectrodes(solution);
+        std::copy(ae.begin(), ae.end(), ptr);
+      }
+    } else if (command == "compute_transfer_matrix") {
+      if (nrhs < 3) {
+        mexErrMsgTxt("please provide a handle to the object and the electrodes");
+        return;
+      }
+      if (nlhs != 1) {
+        mexErrMsgTxt("the method returns a matrix");
+        return;
+      }
+      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      auto electrodes = extractElectrodes(prhs[2]);
+      foo->setElectrodes(electrodes);
+      auto tm = foo->computeTransferMatrix();
+      plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
+      auto ptr = mxGetPr(plhs[0]);
+      std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), ptr);
+    } else if (command == "solve_transfer") {
+      if (nrhs < 4) {
+        mexErrMsgTxt("please provide a handle to the object, the transfer matrix and the dipoles");
+        return;
+      }
+      if (nlhs != 1) {
+        mexErrMsgTxt("the method returns a matrix");
+        return;
+      }
+      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      // the const cast below is a work around to fulfill the dense matrix interface.
+      auto tm = extractDenseMatrix(const_cast<mxArray*>(prhs[2]));
+      auto dipoles = extractDipoles(prhs[3]);
+      plhs[0] = mxCreateDoubleMatrix(tm->rows(), dipoles.size(), mxREAL);
+      auto ptr = mxGetPr(plhs[0]);
+      for (unsigned int i = 0; i != dipoles.size(); ++i, ptr += tm->rows()) {
+        auto ae = foo->solve(*tm, dipoles[i]);
         std::copy(ae.begin(), ae.end(), ptr);
       }
     } else if (command == "delete") {

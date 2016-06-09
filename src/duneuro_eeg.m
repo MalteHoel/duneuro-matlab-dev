@@ -15,5 +15,11 @@ classdef duneuro_eeg < handle
         function solution = solve_direct(this,electrodes, dipoles)
             solution = duneuro_matlab('solve_direct', this.cpp_handle, electrodes, dipoles);
         end
+        function matrix = compute_transfer_matrix(this,electrodes)
+            matrix = duneuro_matlab('compute_transfer_matrix', this.cpp_handle, electrodes);
+        end
+        function solution = solve_transfer(this,transfer_matrix, dipoles)
+            solution = duneuro_matlab('solve_transfer', this.cpp_handle, transfer_matrix, dipoles);
+        end
     end
 end
