@@ -1,1 +1,0 @@
-install(PROGRAMS duneuro-matlab.m4 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/dune/aclocal)

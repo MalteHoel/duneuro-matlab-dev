@@ -1,1 +1,1 @@
-add_subdirectory(duneuro-matlab)
+add_subdirectory(duneuro)
