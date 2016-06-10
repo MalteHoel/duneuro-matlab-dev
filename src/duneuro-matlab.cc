@@ -75,7 +75,7 @@ std::vector<duneuro::Dipole<double, 3>> extractDipoles(const mxArray* arr)
   return output;
 }
 
-std::vector<Dune::FieldVector<double, 3>> extractElectrodes(const mxArray* arr)
+std::vector<Dune::FieldVector<double, 3>> extractFieldVectors(const mxArray* arr)
 {
   if (!mxIsDouble(arr)) {
     mexErrMsgTxt("expected double matrix for electrodes");
@@ -92,6 +92,31 @@ std::vector<Dune::FieldVector<double, 3>> extractElectrodes(const mxArray* arr)
     std::copy(ptr, ptr + rows, v.begin());
     std::cout << "pos: " << v << std::endl;
     output.push_back(v);
+  }
+  return output;
+}
+
+std::vector<std::vector<Dune::FieldVector<double, 3>>> extractProjections(const mxArray* arr)
+{
+  if (!mxIsDouble(arr)) {
+    mexErrMsgTxt("expected double matrix for electrodes");
+  }
+  int rows = mxGetM(arr);
+  int cols = mxGetN(arr);
+  if (rows % 3 != 0) {
+    mexErrMsgTxt("number of rows has to be the a multiple of the number of dims, i.e. 3");
+  }
+  const double* ptr = mxGetPr(arr);
+  std::vector<std::vector<Dune::FieldVector<double, 3>>> output;
+  for (int i = 0; i < cols; ++i, ptr += rows) {
+    std::vector<Dune::FieldVector<double, 3>> current;
+    for (int j = 0; j < rows; j += 3) {
+      Dune::FieldVector<double, 3> v;
+      std::copy(ptr + j, ptr + j + 3, v.begin());
+      std::cout << "pos: " << v << std::endl;
+      current.push_back(v);
+    }
+    output.push_back(current);
   }
   return output;
 }
@@ -137,7 +162,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         return;
       }
       auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
-      auto electrodes = extractElectrodes(prhs[2]);
+      auto electrodes = extractFieldVectors(prhs[2]);
       auto dipoles = extractDipoles(prhs[3]);
       foo->setElectrodes(electrodes);
       std::cout << "creating matrix with " << electrodes.size() << " rows and " << dipoles.size()
@@ -150,6 +175,34 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         auto ae = foo->evaluateAtElectrodes(solution);
         std::copy(ae.begin(), ae.end(), ptr);
       }
+    } else if (command == "solve_meg_forward") {
+      if (nrhs < 5) {
+        mexErrMsgTxt(
+            "please provide a handle to the object, the coils, the projections and the dipoles");
+        return;
+      }
+      if (nlhs != 1) {
+        mexErrMsgTxt("the method returns a matrix");
+        return;
+      }
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
+      auto coils = extractFieldVectors(prhs[2]);
+      auto projections = extractProjections(prhs[3]);
+      std::size_t numberOfProjections = 0;
+      for (const auto& p : projections)
+        numberOfProjections += p.size();
+      auto dipoles = extractDipoles(prhs[4]);
+      foo->setCoilsAndProjections(coils, projections);
+      std::cout << "creating matrix with " << numberOfProjections << " rows and " << dipoles.size()
+                << " cols\n";
+      plhs[0] = mxCreateDoubleMatrix(numberOfProjections, dipoles.size(), mxREAL);
+      auto ptr = mxGetPr(plhs[0]);
+      auto solution = foo->makeDomainFunction();
+      for (unsigned int i = 0; i != dipoles.size(); ++i, ptr += numberOfProjections) {
+        foo->solveEEGForward(dipoles[i], solution);
+        auto ae = foo->solveMEGForward(solution);
+        std::copy(ae.begin(), ae.end(), ptr);
+      }
     } else if (command == "compute_eeg_transfer_matrix") {
       if (nrhs < 3) {
         mexErrMsgTxt("please provide a handle to the object and the electrodes");
@@ -160,9 +213,26 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         return;
       }
       auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
-      auto electrodes = extractElectrodes(prhs[2]);
+      auto electrodes = extractFieldVectors(prhs[2]);
       foo->setElectrodes(electrodes);
       auto tm = foo->computeEEGTransferMatrix();
+      plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
+      auto ptr = mxGetPr(plhs[0]);
+      std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), ptr);
+    } else if (command == "compute_meg_transfer_matrix") {
+      if (nrhs < 4) {
+        mexErrMsgTxt("please provide a handle to the object, the coils and the projections");
+        return;
+      }
+      if (nlhs != 1) {
+        mexErrMsgTxt("the method returns a matrix");
+        return;
+      }
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
+      auto coils = extractFieldVectors(prhs[2]);
+      auto projections = extractProjections(prhs[3]);
+      foo->setCoilsAndProjections(coils, projections);
+      auto tm = foo->computeMEGTransferMatrix();
       plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
       auto ptr = mxGetPr(plhs[0]);
       std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), ptr);
