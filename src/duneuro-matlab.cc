@@ -13,7 +13,7 @@
 #include <dune/common/exceptions.hh>
 #include <dune/common/parametertree.hh>
 
-#include <duneuro/eeg/eeg_driver_factory.hh>
+#include <duneuro/meeg/meeg_driver_factory.hh>
 
 template <class T>
 mxArray* convertPtr2Mat(T* ptr)
@@ -125,9 +125,9 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
       }
       mexLock();
       auto config = matlabStructToParameterTree(prhs[1]);
-      plhs[0] = convertPtr2Mat(duneuro::EEGDriverFactory::make_eeg_driver(config).release());
+      plhs[0] = convertPtr2Mat(duneuro::MEEGDriverFactory::make_meeg_driver(config).release());
       std::cout << "created and lock called\n";
-    } else if (command == "solve_direct") {
+    } else if (command == "solve_eeg_forward") {
       if (nrhs < 4) {
         mexErrMsgTxt("please provide a handle to the object, the electrodes and the dipoles");
         return;
@@ -136,7 +136,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         mexErrMsgTxt("the method returns a matrix");
         return;
       }
-      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
       auto electrodes = extractElectrodes(prhs[2]);
       auto dipoles = extractDipoles(prhs[3]);
       foo->setElectrodes(electrodes);
@@ -146,11 +146,11 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
       auto ptr = mxGetPr(plhs[0]);
       auto solution = foo->makeDomainFunction();
       for (unsigned int i = 0; i != dipoles.size(); ++i, ptr += electrodes.size()) {
-        foo->solve(dipoles[i], solution);
+        foo->solveEEGForward(dipoles[i], solution);
         auto ae = foo->evaluateAtElectrodes(solution);
         std::copy(ae.begin(), ae.end(), ptr);
       }
-    } else if (command == "compute_transfer_matrix") {
+    } else if (command == "compute_eeg_transfer_matrix") {
       if (nrhs < 3) {
         mexErrMsgTxt("please provide a handle to the object and the electrodes");
         return;
@@ -159,14 +159,14 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         mexErrMsgTxt("the method returns a matrix");
         return;
       }
-      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
       auto electrodes = extractElectrodes(prhs[2]);
       foo->setElectrodes(electrodes);
-      auto tm = foo->computeTransferMatrix();
+      auto tm = foo->computeEEGTransferMatrix();
       plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
       auto ptr = mxGetPr(plhs[0]);
       std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), ptr);
-    } else if (command == "solve_transfer") {
+    } else if (command == "apply_transfer") {
       if (nrhs < 4) {
         mexErrMsgTxt("please provide a handle to the object, the transfer matrix and the dipoles");
         return;
@@ -175,14 +175,14 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         mexErrMsgTxt("the method returns a matrix");
         return;
       }
-      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
       // the const cast below is a work around to fulfill the dense matrix interface.
       auto tm = extractDenseMatrix(const_cast<mxArray*>(prhs[2]));
       auto dipoles = extractDipoles(prhs[3]);
       plhs[0] = mxCreateDoubleMatrix(tm->rows(), dipoles.size(), mxREAL);
       auto ptr = mxGetPr(plhs[0]);
       for (unsigned int i = 0; i != dipoles.size(); ++i, ptr += tm->rows()) {
-        auto ae = foo->solve(*tm, dipoles[i]);
+        auto ae = foo->applyTransfer(*tm, dipoles[i]);
         std::copy(ae.begin(), ae.end(), ptr);
       }
     } else if (command == "delete") {
@@ -190,7 +190,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         mexErrMsgTxt("please provide a handle to the object");
         return;
       }
-      auto* foo = convertMat2Ptr<duneuro::EEGDriverInterface>(prhs[1]);
+      auto* foo = convertMat2Ptr<duneuro::MEEGDriverInterface>(prhs[1]);
       delete foo;
       mexUnlock();
       std::cout << "deleted and unlock called\n";
