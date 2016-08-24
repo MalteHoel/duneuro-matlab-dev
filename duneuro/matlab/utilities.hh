@@ -53,6 +53,9 @@ namespace duneuro
 
   /** \TODO docme! */
   std::unique_ptr<const DenseMatrix<double>> extract_dense_matrix(mxArray* arr);
+
+  /** \TODO docme! */
+  bool extract_bool(const mxArray* arr);
 }
 
 #endif // DUNEURO_MATLAB_UTILITIES_HH

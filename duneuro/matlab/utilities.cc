@@ -8,24 +8,38 @@
 
 namespace duneuro
 {
-  Dune::ParameterTree matlab_struct_to_parametertree(const mxArray* mstr)
+  std::map<std::string, std::string> matlab_struct_to_map(const mxArray* mstr)
   {
-    Dune::ParameterTree config;
+    std::map<std::string, std::string> out;
+
     auto nfields = mxGetNumberOfFields(mstr);
     for (int i = 0; i < nfields; ++i) {
       std::string name(mxGetFieldNameByNumber(mstr, i));
       auto field = mxGetFieldByNumber(mstr, 0, i);
       if (mxIsStruct(field)) {
-        auto& sub = config.sub(name);
-        sub = matlab_struct_to_parametertree(field);
+        auto sub = matlab_struct_to_map(field);
+        for (const auto& k : sub) {
+          out[name + '.' + k.first] = k.second;
+        }
       } else if (mxIsChar(field)) {
-        config[name] = std::string(mxArrayToString(field));
+        out[name] = std::string(mxArrayToString(field));
       } else {
         std::stringstream sstr;
         sstr << "data type for \"" << name << "\" not supported";
         auto str = sstr.str();
         mexErrMsgTxt(str.c_str());
       }
+    }
+
+    return out;
+  }
+
+  Dune::ParameterTree matlab_struct_to_parametertree(const mxArray* mstr)
+  {
+    Dune::ParameterTree config;
+    auto map = matlab_struct_to_map(mstr);
+    for (const auto& k : map) {
+      config[k.first] = k.second;
     }
     return config;
   }
@@ -123,5 +137,13 @@ namespace duneuro
     int cols = mxGetN(arr);
     double* ptr = mxGetPr(arr);
     return Dune::Std::make_unique<DenseMatrix<double>>(cols, rows, ptr);
+  }
+
+  bool extract_bool(const mxArray* arr)
+  {
+    if (!mxIsLogicalScalar(arr)) {
+      mexErrMsgTxt("expected logical scalar");
+    }
+    return mxIsLogicalScalarTrue(arr);
   }
 }

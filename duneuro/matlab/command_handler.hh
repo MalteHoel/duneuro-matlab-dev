@@ -1,4 +1,8 @@
+#ifndef DUNEURO_MATLAB_COMMAND_HANDLER_HH
+#define DUNEURO_MATLAB_COMMAND_HANDLER_HH
+
 #include <mex.h>
+#include <memory>
 
 namespace duneuro
 {
@@ -20,7 +24,9 @@ namespace duneuro
     static void compute_meg_transfer_matrix(int nlhs, mxArray* plhs[], int nrhs,
                                             const mxArray* prhs[]);
     /** \TODO docme! */
-    static void apply_transfer(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void apply_eeg_transfer(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    /** \TODO docme! */
+    static void apply_meg_transfer(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
     static void set_electrodes(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
@@ -33,6 +39,10 @@ namespace duneuro
     /** \TODO docme! */
     static void delete_driver(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
+    static void analytical_solution(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    /** \TODO docme! */
     static void run_command(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
   };
 }
+
+#endif // DUNEURO_MATLAB_COMMAND_HANDLER_HH
