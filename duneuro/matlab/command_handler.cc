@@ -241,7 +241,7 @@ namespace duneuro
     mexUnlock();
   }
 
-  void CommandHandler::analytical_solution(int nlhs, mxArray* plhs[], int nrhs,
+  void CommandHandler::eeg_analytical_solution(int nlhs, mxArray* plhs[], int nrhs,
                                            const mxArray* prhs[])
   {
     if (nrhs < 3) {
@@ -281,7 +281,7 @@ namespace duneuro
                     {"set_coils_and_projections", set_coils_and_projections},
                     {"evaluate_at_electrodes", evaluate_at_electrodes},
                     {"write", write},
-                    {"analytical_solution", analytical_solution},
+                    {"eeg_analytical_solution", eeg_analytical_solution},
                     {"delete", delete_driver}};
     if (nrhs == 0) {
       mexErrMsgTxt("please provide a command");
