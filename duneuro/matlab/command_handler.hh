@@ -14,6 +14,8 @@ namespace duneuro
     /** \TODO docme! */
     static void delete_function(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
+    static void set_source_model(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    /** \TODO docme! */
     static void solve_eeg_forward(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
     static void solve_meg_forward(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);

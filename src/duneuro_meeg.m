@@ -15,6 +15,9 @@ classdef duneuro_meeg < handle
         function solve_eeg_forward(this, dipole, func, config)
             duneuro_matlab('solve_eeg_forward', this.cpp_handle, dipole, func.cpp_handle, config);
         end
+        function set_source_model(this, config)
+            duneuro_matlab('set_source_model', this.cpp_handle, config);
+        end
         function solution = solve_meg_forward(this, func, config)
             solution = duneuro_matlab('solve_meg_forward', this.cpp_handle, func.cpp_handle, config);
         end
