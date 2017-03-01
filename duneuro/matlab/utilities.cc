@@ -71,7 +71,6 @@ namespace duneuro
       Dune::FieldVector<double, 3> pos, mom;
       std::copy(ptr, ptr + 3, pos.begin());
       std::copy(ptr + 3, ptr + 6, mom.begin());
-      std::cout << "pos: " << pos << " mom: " << mom << std::endl;
       output.push_back(Dipole<double, 3>(pos, mom));
     }
     return output;
@@ -92,7 +91,6 @@ namespace duneuro
     for (int i = 0; i < cols; ++i, ptr += rows) {
       Dune::FieldVector<double, 3> v;
       std::copy(ptr, ptr + rows, v.begin());
-      std::cout << "pos: " << v << std::endl;
       output.push_back(v);
     }
     return output;
@@ -115,7 +113,6 @@ namespace duneuro
       for (int j = 0; j < rows; j += 3) {
         Dune::FieldVector<double, 3> v;
         std::copy(ptr + j, ptr + j + 3, v.begin());
-        std::cout << "pos: " << v << std::endl;
         current.push_back(v);
       }
       output.push_back(current);
