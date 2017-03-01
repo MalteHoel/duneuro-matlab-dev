@@ -23,11 +23,6 @@ namespace duneuro
         }
       } else if (mxIsChar(field)) {
         out[name] = std::string(mxArrayToString(field));
-      } else {
-        std::stringstream sstr;
-        sstr << "data type for \"" << name << "\" not supported";
-        auto str = sstr.str();
-        mexErrMsgTxt(str.c_str());
       }
     }
 
@@ -145,5 +140,62 @@ namespace duneuro
       mexErrMsgTxt("expected logical scalar");
     }
     return mxIsLogicalScalarTrue(arr);
+  }
+
+  void extract_fitted_driver_data_from_struct(const mxArray* str, FittedDriverData<3>& data)
+  {
+    const int dim = 3;
+    if (!mxIsStruct(str)) {
+      mexErrMsgTxt("expected struct array to extract data from");
+      return;
+    }
+    auto vc = mxGetField(str, 0, "volume_conductor");
+    if (vc && mxIsStruct(vc)) {
+      auto grid = mxGetField(vc, 0, "grid");
+      if (grid && mxIsStruct(grid)) {
+        auto nodes = mxGetField(grid, 0, "nodes");
+        auto elements = mxGetField(grid, 0, "elements");
+        if (nodes && elements && mxIsDouble(nodes) && mxIsUint64(elements)) {
+          auto nodeRows = mxGetM(nodes);
+          auto nodeCols = mxGetN(nodes);
+          auto elementRows = mxGetM(elements);
+          auto elementCols = mxGetN(elements);
+          if (nodeRows != dim) {
+            mexErrMsgTxt("number of rows of the node array has to match the dimension");
+            return;
+          }
+          const double* const nodePtr = mxGetPr(nodes);
+          for (unsigned int i = 0; i < nodeCols; ++i) {
+            typename duneuro::FittedDriverData<dim>::Coordinate c;
+            std::copy(nodePtr + i * dim, nodePtr + (i + 1) * dim, c.begin());
+            data.nodes.push_back(c);
+          }
+          const std::uint64_t* const elementPtr =
+              static_cast<const std::uint64_t*>(mxGetData(elements));
+          for (unsigned int i = 0; i < elementCols; ++i) {
+            data.elements.emplace_back(elementPtr + i * elementRows,
+                                       elementPtr + (i + 1) * elementRows);
+            for (const auto& ei : data.elements.back()) {
+              if (ei >= data.nodes.size()) {
+                DUNE_THROW(Dune::Exception, "node index " << ei << " out of bounds ("
+                                                          << data.nodes.size() << ")");
+              }
+            }
+          }
+        }
+      }
+      auto tensors = mxGetField(vc, 0, "tensors");
+      if (tensors && mxIsStruct(tensors)) {
+        auto labels = mxGetField(tensors, 0, "labels");
+        auto conductivities = mxGetField(tensors, 0, "conductivities");
+        if (labels && conductivities && mxIsDouble(conductivities) && mxIsUint64(labels)) {
+          const double* const cptr = mxGetPr(conductivities);
+          std::copy(cptr, cptr + mxGetNumberOfElements(conductivities),
+                    std::back_inserter(data.conductivities));
+          const std::uint64_t* const lptr = static_cast<const std::uint64_t*>(mxGetData(labels));
+          std::copy(lptr, lptr + mxGetNumberOfElements(labels), std::back_inserter(data.labels));
+        }
+      }
+    }
   }
 }

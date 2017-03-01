@@ -7,6 +7,7 @@
 
 #include <duneuro/common/dense_matrix.hh>
 #include <duneuro/common/dipole.hh>
+#include <duneuro/common/fitted_driver_data.hh>
 
 namespace duneuro
 {
@@ -56,6 +57,9 @@ namespace duneuro
 
   /** \TODO docme! */
   bool extract_bool(const mxArray* arr);
+
+  /** \TODO docme! */
+  void extract_fitted_driver_data_from_struct(const mxArray* str, duneuro::FittedDriverData<3>& data);
 }
 
 #endif // DUNEURO_MATLAB_UTILITIES_HH

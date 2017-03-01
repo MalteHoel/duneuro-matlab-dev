@@ -4,6 +4,7 @@
 
 #include <duneuro/matlab/command_handler.hh>
 
+#include <duneuro/common/fitted_driver_data.hh>
 #include <duneuro/eeg/eeg_analytic_solution.hh>
 #include <duneuro/meeg/meeg_driver_factory.hh>
 
@@ -20,9 +21,11 @@ namespace duneuro
     if (nrhs != 1) {
       mexErrMsgTxt("one input required");
     }
-    auto config = matlab_struct_to_parametertree(prhs[0]);
-    config.report(std::cout);
-    plhs[0] = convert_ptr_to_mat(MEEGDriverFactory<3>::make_meeg_driver(config).release());
+    duneuro::MEEGDriverData<3> data;
+    extract_fitted_driver_data_from_struct(prhs[0], data.fittedData);
+    plhs[0] = convert_ptr_to_mat(
+        MEEGDriverFactory<3>::make_meeg_driver(matlab_struct_to_parametertree(prhs[0]), data)
+            .release());
     // note: mexLock has a lock count, call mexUnlock each time a driver is destroyed
     mexLock();
   }
