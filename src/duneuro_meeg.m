@@ -11,7 +11,6 @@ classdef duneuro_meeg < handle
         function delete(this)
             duneuro_matlab('delete', this.cpp_handle);
         end
-        % write
         function solve_eeg_forward(this, dipole, func, config)
             duneuro_matlab('solve_eeg_forward', this.cpp_handle, dipole, func.cpp_handle, config);
         end
@@ -44,6 +43,9 @@ classdef duneuro_meeg < handle
         end
         function write(this, func, config)
             duneuro_matlab('write', this.cpp_handle, func.cpp_handle, config);
+        end
+        function write_mesh(this, config)
+            duneuro_matlab('write', this.cpp_handle, config);
         end
     end
 end

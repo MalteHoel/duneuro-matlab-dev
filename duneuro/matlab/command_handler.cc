@@ -233,19 +233,22 @@ namespace duneuro
 
   void CommandHandler::write(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
   {
-    if (nrhs < 3) {
-      mexErrMsgTxt(
-          "please provide a handle to the object, a handle to the function and a configuration "
-          "struct");
-      return;
-    }
     if (nlhs != 0) {
       mexErrMsgTxt("the method does not return variables");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
-    auto* sol = convert_mat_to_ptr<Function>(prhs[1]);
-    foo->write(*sol, matlab_struct_to_parametertree(prhs[2]));
+    if (nrhs == 2) {
+      auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+      foo->write(matlab_struct_to_parametertree(prhs[1]));
+    } else if (nrhs == 3) {
+      auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+      auto* sol = convert_mat_to_ptr<Function>(prhs[1]);
+      foo->write(*sol, matlab_struct_to_parametertree(prhs[2]));
+    } else {
+      mexErrMsgTxt(
+          "please provide a handle to the object, obtionally a handle to the function and a "
+          "configuration struct");
+    }
   }
 
   void CommandHandler::delete_driver(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
