@@ -23,7 +23,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
     }
     duneuro::CommandHandler::run_command(nlhs, plhs, nrhs, prhs);
   } catch (Dune::Exception& ex) {
-    mexErrMsgTxt(ex.what().c_str());
+    mexErrMsgTxt(ex.what());
     return;
   }
   return;
