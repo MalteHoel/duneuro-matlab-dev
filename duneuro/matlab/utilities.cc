@@ -144,22 +144,32 @@ namespace duneuro
     const int dim = 3;
     if (!mxIsStruct(str)) {
       mexErrMsgTxt("expected struct array to extract data from");
-      return;
     }
     auto vc = mxGetField(str, 0, "volume_conductor");
-    if (vc && mxIsStruct(vc)) {
+    if (vc) {
+      if (!mxIsStruct(vc)) {
+        mexErrMsgTxt("volume_conductor has the wrong data type. expected struct array");
+      }
       auto grid = mxGetField(vc, 0, "grid");
-      if (grid && mxIsStruct(grid)) {
+      if (grid) {
+        if (!mxIsStruct(grid)) {
+          mexErrMsgTxt("grid has the wrong data type. expected struct array");
+        }
         auto nodes = mxGetField(grid, 0, "nodes");
         auto elements = mxGetField(grid, 0, "elements");
-        if (nodes && elements && mxIsDouble(nodes) && mxIsUint64(elements)) {
+        if (nodes && elements) {
+          if (!mxIsDouble(nodes)) {
+            mexErrMsgTxt("nodes has the wrong data type. expecting double");
+          }
+          if (!mxIsUint64(elements)) {
+            mexErrMsgTxt("elements has the wrong data type. expecting uint64");
+          }
           auto nodeRows = mxGetM(nodes);
           auto nodeCols = mxGetN(nodes);
           auto elementRows = mxGetM(elements);
           auto elementCols = mxGetN(elements);
           if (nodeRows != dim) {
             mexErrMsgTxt("number of rows of the node array has to match the dimension");
-            return;
           }
           const double* const nodePtr = mxGetPr(nodes);
           for (unsigned int i = 0; i < nodeCols; ++i) {
@@ -174,23 +184,43 @@ namespace duneuro
                                        elementPtr + (i + 1) * elementRows);
             for (const auto& ei : data.elements.back()) {
               if (ei >= data.nodes.size()) {
-                DUNE_THROW(Dune::Exception, "node index " << ei << " out of bounds ("
-                                                          << data.nodes.size() << ")");
+                std::stringstream sstr;
+                sstr << "node index " << ei << " out of bounds (" << data.nodes.size() << ")";
+                mexErrMsgTxt(sstr.str().c_str());
               }
             }
           }
         }
       }
       auto tensors = mxGetField(vc, 0, "tensors");
-      if (tensors && mxIsStruct(tensors)) {
+      if (tensors) {
+        if (!mxIsStruct(tensors)) {
+          mexErrMsgTxt("tensors has the wrong data type. expected struct-array.");
+        }
         auto labels = mxGetField(tensors, 0, "labels");
         auto conductivities = mxGetField(tensors, 0, "conductivities");
-        if (labels && conductivities && mxIsDouble(conductivities) && mxIsUint64(labels)) {
+        if (labels && conductivities) {
+          if (!mxIsDouble(conductivities)) {
+            mexErrMsgTxt("conductivities has the wrong data type. expected double.");
+            return;
+          }
+          if (!mxIsUint64(labels)) {
+            mexErrMsgTxt("labels has the wrong data type. expected uint64.");
+            return;
+          }
           const double* const cptr = mxGetPr(conductivities);
           std::copy(cptr, cptr + mxGetNumberOfElements(conductivities),
                     std::back_inserter(data.conductivities));
           const std::uint64_t* const lptr = static_cast<const std::uint64_t*>(mxGetData(labels));
           std::copy(lptr, lptr + mxGetNumberOfElements(labels), std::back_inserter(data.labels));
+          for (const auto& label : data.labels) {
+            if (label < 0 || std::size_t(label) > data.conductivities.size()) {
+              std::stringstream sstr;
+              sstr << "label " << label << " out of bounds (" << data.conductivities.size() << ")";
+              mexErrMsgTxt(sstr.str().c_str());
+              return;
+            }
+          }
         }
       }
     }
