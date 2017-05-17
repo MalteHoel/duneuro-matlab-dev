@@ -29,6 +29,9 @@ classdef duneuro_meeg < handle
         function set_electrodes(this, electrodes, config)
             duneuro_matlab('set_electrodes', this.cpp_handle, electrodes, config);
         end
+        function electrodes = get_projected_electrodes(this)
+            electrodes = duneuro_matlab('get_projected_electrodes', this.cpp_handle);
+        end
         function set_coils_and_projections(this, coils, projections)
             duneuro_matlab('set_coils_and_projections', this.cpp_handle, coils, projections);
         end

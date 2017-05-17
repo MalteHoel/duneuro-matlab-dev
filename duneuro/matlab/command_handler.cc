@@ -183,6 +183,26 @@ namespace duneuro
     std::copy(ae.begin(), ae.end(), mxGetPr(plhs[0]));
   }
 
+  void CommandHandler::get_projected_electrodes(int nlhs, mxArray* plhs[], int nrhs,
+                                                const mxArray* prhs[])
+  {
+    if (nrhs < 1) {
+      mexErrMsgTxt("please provide a handle to the object");
+      return;
+    }
+    if (nlhs != 0) {
+      mexErrMsgTxt("the method does not return variables");
+      return;
+    }
+    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto electrodes = foo->getProjectedElectrodes();
+    plhs[0] = mxCreateDoubleMatrix(3, electrodes.size(), mxREAL);
+    auto* pr = mxGetPr(plhs[0]);
+    for (unsigned int i = 0; i < electrodes.size(); ++i, pr += 3) {
+      std::copy(electrodes[i].begin(), electrodes[i].end(), pr);
+    }
+  }
+
   void CommandHandler::set_electrodes(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
   {
     if (nrhs < 3) {
@@ -299,6 +319,7 @@ namespace duneuro
                     {"apply_eeg_transfer", apply_eeg_transfer},
                     {"apply_meg_transfer", apply_meg_transfer},
                     {"set_electrodes", set_electrodes},
+                    {"get_projected_electrodes", get_projected_electrodes},
                     {"set_coils_and_projections", set_coils_and_projections},
                     {"set_source_model", set_source_model},
                     {"evaluate_at_electrodes", evaluate_at_electrodes},
