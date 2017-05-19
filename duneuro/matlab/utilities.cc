@@ -222,6 +222,28 @@ namespace duneuro
             }
           }
         }
+        auto realtensors = mxGetField(tensors, 0, "tensors");
+        if (tensors) {
+          if (!mxIsDouble(realtensors)) {
+            mexErrMsgTxt("tensors has the wrong data type. expected double.");
+            return;
+          }
+          int rows = mxGetM(realtensors);
+          int cols = mxGetN(realtensors);
+          if (rows != 3) {
+            mexErrMsgTxt("number of rows has to be the number of dims, i.e. 3");
+          }
+          const double* ptr = mxGetPr(realtensors);
+          for (int i = 0; i < cols; i += 3, ptr += 3 * rows) {
+            Dune::FieldMatrix<double, 3, 3> m;
+            for (int c = 0; c < 3; ++c) {
+              for (int r = 0; r < 3; ++r) {
+                m[r][c] = *(ptr + 3 * c + r);
+              }
+            }
+            data.tensors.push_back(m);
+          }
+        }
       }
     }
   }
