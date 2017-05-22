@@ -53,21 +53,6 @@ namespace duneuro
     mexUnlock();
   }
 
-  void CommandHandler::set_source_model(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
-  {
-    if (nrhs < 2) {
-      mexErrMsgTxt(
-          "please provide a handle to the object and a configuration struct");
-      return;
-    }
-    if (nlhs != 0) {
-      mexErrMsgTxt("the method does not return variables");
-      return;
-    }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
-    foo->setSourceModel(matlab_struct_to_parametertree(prhs[1]));
-  }
-
   void CommandHandler::solve_eeg_forward(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
   {
     if (nrhs < 4) {
@@ -155,10 +140,14 @@ namespace duneuro
     auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
     // the const cast below is a work around to fulfill the dense matrix interface.
     auto tm = extract_dense_matrix(const_cast<mxArray*>(prhs[1]));
-    auto ae = foo->applyEEGTransfer(*tm, extract_dipole(prhs[2]),
+    auto ae = foo->applyEEGTransfer(*tm, extract_dipoles(prhs[2]),
                                     matlab_struct_to_parametertree(prhs[3]));
-    plhs[0] = mxCreateDoubleMatrix(tm->rows(), 1, mxREAL);
-    std::copy(ae.begin(), ae.end(), mxGetPr(plhs[0]));
+    plhs[0] = mxCreateDoubleMatrix(tm->rows(), ae.size(), mxREAL);
+    auto pr = mxGetPr(plhs[0]);
+    for (const auto& a : ae) {
+      std::copy(a.begin(), a.end(), pr);
+      pr += a.size();
+    }
   }
 
   void CommandHandler::apply_meg_transfer(int nlhs, mxArray* plhs[], int nrhs,
@@ -177,10 +166,14 @@ namespace duneuro
     auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
     // the const cast below is a work around to fulfill the dense matrix interface.
     auto tm = extract_dense_matrix(const_cast<mxArray*>(prhs[1]));
-    auto ae = foo->applyMEGTransfer(*tm, extract_dipole(prhs[2]),
+    auto ae = foo->applyMEGTransfer(*tm, extract_dipoles(prhs[2]),
                                     matlab_struct_to_parametertree(prhs[3]));
-    plhs[0] = mxCreateDoubleMatrix(tm->rows(), 1, mxREAL);
-    std::copy(ae.begin(), ae.end(), mxGetPr(plhs[0]));
+    plhs[0] = mxCreateDoubleMatrix(tm->rows(), ae.size(), mxREAL);
+    auto pr = mxGetPr(plhs[0]);
+    for (const auto& a : ae) {
+      std::copy(a.begin(), a.end(), pr);
+      pr += a.size();
+    }
   }
 
   void CommandHandler::get_projected_electrodes(int nlhs, mxArray* plhs[], int nrhs,
@@ -321,7 +314,6 @@ namespace duneuro
                     {"set_electrodes", set_electrodes},
                     {"get_projected_electrodes", get_projected_electrodes},
                     {"set_coils_and_projections", set_coils_and_projections},
-                    {"set_source_model", set_source_model},
                     {"evaluate_at_electrodes", evaluate_at_electrodes},
                     {"write", write},
                     {"eeg_analytical_solution", eeg_analytical_solution},
