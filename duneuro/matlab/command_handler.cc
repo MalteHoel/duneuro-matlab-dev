@@ -190,8 +190,8 @@ namespace duneuro
       mexErrMsgTxt("please provide a handle to the object");
       return;
     }
-    if (nlhs != 0) {
-      mexErrMsgTxt("the method does not return variables");
+    if (nlhs != 1) {
+      mexErrMsgTxt("the method returns a matrix");
       return;
     }
     auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
