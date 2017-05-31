@@ -32,6 +32,9 @@ namespace duneuro
     /** \TODO docme! */
     static void set_electrodes(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
+    static void get_projected_electrodes(int nlhs, mxArray* plhs[], int nrhs,
+                                         const mxArray* prhs[]);
+    /** \TODO docme! */
     static void set_coils_and_projections(int nlhs, mxArray* plhs[], int nrhs,
                                           const mxArray* prhs[]);
     /** \TODO docme! */
