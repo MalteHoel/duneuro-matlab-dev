@@ -5,7 +5,6 @@
 #include <duneuro/matlab/command_handler.hh>
 
 #include <duneuro/common/fitted_driver_data.hh>
-#include <duneuro/eeg/eeg_analytic_solution.hh>
 #include <duneuro/meeg/meeg_driver_factory.hh>
 
 #include <duneuro/matlab/utilities.hh>
@@ -275,30 +274,6 @@ namespace duneuro
     mexUnlock();
   }
 
-  void CommandHandler::eeg_analytical_solution(int nlhs, mxArray* plhs[], int nrhs,
-                                               const mxArray* prhs[])
-  {
-    if (nrhs < 3) {
-      mexErrMsgTxt("please provide the configuration, the electrodes and the dipole");
-      return;
-    }
-    if (nlhs != 1) {
-      mexErrMsgTxt("the method returns a matrix");
-      return;
-    }
-    auto ptree = matlab_struct_to_parametertree(prhs[0]);
-    auto electrodes = extract_field_vectors(prhs[1]);
-    auto dipoles = extract_dipoles(prhs[2]);
-    auto sol = duneuro::compute_analytic_solution(electrodes, dipoles, ptree);
-    plhs[0] = mxCreateDoubleMatrix(sol.rows(), sol.cols(), mxREAL);
-    double* ptr = mxGetPr(plhs[0]);
-    for (unsigned int j = 0; j < sol.cols(); ++j) {
-      for (unsigned int i = 0; i < sol.rows(); ++i) {
-        *ptr++ = sol[i][j];
-      }
-    }
-  }
-
   void CommandHandler::run_command(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
   {
     static std::map<std::string, std::function<void(int, mxArray* [], int, const mxArray* [])>>
@@ -316,7 +291,6 @@ namespace duneuro
                     {"set_coils_and_projections", set_coils_and_projections},
                     {"evaluate_at_electrodes", evaluate_at_electrodes},
                     {"write", write},
-                    {"eeg_analytical_solution", eeg_analytical_solution},
                     {"delete", delete_driver}};
     if (nrhs == 0) {
       mexErrMsgTxt("please provide a command");
