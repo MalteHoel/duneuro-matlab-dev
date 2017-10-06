@@ -24,10 +24,6 @@ classdef duneuro_meeg < handle
         function solve_eeg_forward(this, dipole, func, config)
             duneuro_matlab('solve_eeg_forward', this.cpp_handle, dipole, func.cpp_handle, config);
         end
-        function set_source_model(this, config)
-            duneuro_matlab('set_source_model', this.cpp_handle, config);
-            this.source_model = [];
-        end
         function solution = solve_meg_forward(this, func, config)
             solution = duneuro_matlab('solve_meg_forward', this.cpp_handle, func.cpp_handle, config);
         end
@@ -53,11 +49,11 @@ classdef duneuro_meeg < handle
         function solution = evaluate_at_electrodes(this, func)
             solution = duneuro_matlab('evaluate_at_electrodes', this.cpp_handle, func.cpp_handle);
         end
-        function solution = apply_eeg_transfer(this, transfer_matrix, dipole, config)
-            solution = duneuro_matlab('apply_eeg_transfer', this.cpp_handle, transfer_matrix, dipole, config);
+        function solution = apply_eeg_transfer(this, transfer_matrix, dipoles, config)
+            solution = duneuro_matlab('apply_eeg_transfer', this.cpp_handle, transfer_matrix, dipoles, config);
         end
-        function solution = apply_meg_transfer(this, transfer_matrix, dipole, config)
-            solution = duneuro_matlab('apply_meg_transfer', this.cpp_handle, transfer_matrix, dipole, config);
+        function solution = apply_meg_transfer(this, transfer_matrix, dipoles, config)
+            solution = duneuro_matlab('apply_meg_transfer', this.cpp_handle, transfer_matrix, dipoles, config);
         end
         function write(this, func, config)
             duneuro_matlab('write', this.cpp_handle, func.cpp_handle, config);
