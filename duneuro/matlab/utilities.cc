@@ -223,7 +223,7 @@ namespace duneuro
           }
         }
         auto realtensors = mxGetField(tensors, 0, "tensors");
-        if (tensors) {
+        if (realtensors) {
           if (!mxIsDouble(realtensors)) {
             mexErrMsgTxt("tensors has the wrong data type. expected double.");
             return;
