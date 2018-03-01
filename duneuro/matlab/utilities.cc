@@ -79,7 +79,7 @@ namespace duneuro
   std::vector<Dune::FieldVector<double, 3>> extract_field_vectors(const mxArray* arr)
   {
     if (!mxIsDouble(arr)) {
-      mexErrMsgTxt("expected double matrix for electrodes");
+      mexErrMsgTxt("expected double matrix");
     }
     int rows = mxGetM(arr);
     int cols = mxGetN(arr);
@@ -99,12 +99,12 @@ namespace duneuro
   std::vector<std::vector<Dune::FieldVector<double, 3>>> extract_projections(const mxArray* arr)
   {
     if (!mxIsDouble(arr)) {
-      mexErrMsgTxt("expected double matrix for electrodes");
+      mexErrMsgTxt("expected double matrix for projections");
     }
     int rows = mxGetM(arr);
     int cols = mxGetN(arr);
     if (rows % 3 != 0) {
-      mexErrMsgTxt("number of rows has to be the a multiple of the number of dims, i.e. 3");
+      mexErrMsgTxt("number of rows has to be a multiple of the number of dims, i.e. 3");
     }
     const double* ptr = mxGetPr(arr);
     std::vector<std::vector<Dune::FieldVector<double, 3>>> output;
@@ -123,7 +123,7 @@ namespace duneuro
   std::unique_ptr<const DenseMatrix<double>> extract_dense_matrix(mxArray* arr)
   {
     if (!mxIsDouble(arr)) {
-      mexErrMsgTxt("expected double matrix for electrodes");
+      mexErrMsgTxt("expected double matrix");
     }
     int rows = mxGetM(arr);
     int cols = mxGetN(arr);
@@ -231,11 +231,12 @@ namespace duneuro
           }
           int rows = mxGetM(realtensors);
           int cols = mxGetN(realtensors);
-          if (rows != 3) {
-            mexErrMsgTxt("number of rows has to be the number of dims, i.e. 3");
+          if (rows != 9) {
+            mexErrMsgTxt("number of rows of the tensors matrix has to be the number of dims squared, i.e. 9");
+            return;
           }
           const double* ptr = mxGetPr(realtensors);
-          for (int i = 0; i < cols; i += 3, ptr += 3 * rows) {
+          for (int i = 0; i < cols; ++i, ptr += rows) {
             Dune::FieldMatrix<double, 3, 3> m;
             for (int c = 0; c < 3; ++c) {
               for (int r = 0; r < 3; ++r) {
