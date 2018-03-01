@@ -199,28 +199,29 @@ namespace duneuro
         }
         auto labels = mxGetField(tensors, 0, "labels");
         auto conductivities = mxGetField(tensors, 0, "conductivities");
-        if (labels && conductivities) {
-          if (!mxIsDouble(conductivities)) {
-            mexErrMsgTxt("conductivities has the wrong data type. expected double.");
-            return;
-          }
+        if (labels) {
           if (!mxIsUint64(labels)) {
             mexErrMsgTxt("labels has the wrong data type. expected uint64.");
+            return;
+          }
+          const std::uint64_t* const lptr = static_cast<const std::uint64_t*>(mxGetData(labels));
+          std::copy(lptr, lptr + mxGetNumberOfElements(labels), std::back_inserter(data.labels));
+          if (data.labels.size() != data.elements.size()) {
+            std::stringstream errormsg;
+            errormsg << "number of labels (" << data.labels.size() << ") and number of elements ("
+                     << data.elements.size() << ") do not match";
+            mexErrMsgTxt(errormsg.str().c_str());
+            return;
+          }
+        }
+        if (conductivities) {
+          if (!mxIsDouble(conductivities)) {
+            mexErrMsgTxt("conductivities has the wrong data type. expected double.");
             return;
           }
           const double* const cptr = mxGetPr(conductivities);
           std::copy(cptr, cptr + mxGetNumberOfElements(conductivities),
                     std::back_inserter(data.conductivities));
-          const std::uint64_t* const lptr = static_cast<const std::uint64_t*>(mxGetData(labels));
-          std::copy(lptr, lptr + mxGetNumberOfElements(labels), std::back_inserter(data.labels));
-          for (const auto& label : data.labels) {
-            if (label < 0 || std::size_t(label) > data.conductivities.size()) {
-              std::stringstream sstr;
-              sstr << "label " << label << " out of bounds (" << data.conductivities.size() << ")";
-              mexErrMsgTxt(sstr.str().c_str());
-              return;
-            }
-          }
         }
         auto realtensors = mxGetField(tensors, 0, "tensors");
         if (realtensors) {
