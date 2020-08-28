@@ -263,6 +263,21 @@ namespace duneuro
     }
   }
 
+  void CommandHandler::print_citations(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
+  {
+    if (nlhs != 0) {
+      mexErrMsgTxt("the method does not return variables");
+      return;
+    }
+    if (nrhs == 1) {
+        auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+        foo->print_citations();
+    }
+    else {
+      mexErrMsgTxt("please provide a handle to the object");
+    }
+  }
+
   void CommandHandler::delete_driver(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
   {
     if (nrhs == 0) {
@@ -291,6 +306,7 @@ namespace duneuro
                     {"set_coils_and_projections", set_coils_and_projections},
                     {"evaluate_at_electrodes", evaluate_at_electrodes},
                     {"write", write},
+                    {"print_citations", print_citations},
                     {"delete", delete_driver}};
     if (nrhs == 0) {
       mexErrMsgTxt("please provide a command");

@@ -40,6 +40,8 @@ namespace duneuro
     /** \TODO docme! */
     static void write(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
+    static void print_citations(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    /** \TODO docme! */
     static void delete_driver(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
     static void run_command(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
