@@ -61,6 +61,9 @@ classdef duneuro_meeg < handle
         function write_mesh(this, config)
             duneuro_matlab('write', this.cpp_handle, config);
         end
+        function print_citations(this)
+            duneuro_matlab('print_citations', this.cpp_handle);
+        end
         function s = saveobj(this)
             s.constructor_arguments = this.constructor_arguments;
             s.source_model = this.source_model;
