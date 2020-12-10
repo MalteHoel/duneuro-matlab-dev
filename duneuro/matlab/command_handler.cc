@@ -270,7 +270,7 @@ namespace duneuro
       return;
     }
     if (nrhs == 1) {
-        auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+        auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
         foo->print_citations();
     }
     else {
