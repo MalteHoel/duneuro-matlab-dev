@@ -5,7 +5,7 @@
 #include <duneuro/matlab/command_handler.hh>
 
 #include <duneuro/common/fitted_driver_data.hh>
-#include <duneuro/meeg/meeg_driver_factory.hh>
+#include <duneuro/driver/driver_factory.hh>
 
 #include <duneuro/matlab/utilities.hh>
 
@@ -23,7 +23,7 @@ namespace duneuro
     duneuro::MEEGDriverData<3> data;
     extract_fitted_driver_data_from_struct(prhs[0], data.fittedData);
     plhs[0] = convert_ptr_to_mat(
-        MEEGDriverFactory<3>::make_meeg_driver(matlab_struct_to_parametertree(prhs[0]), data)
+        DriverFactory<3>::make_driver(matlab_struct_to_parametertree(prhs[0]), data)
             .release());
     // note: mexLock has a lock count, call mexUnlock each time a driver is destroyed
     mexLock();
@@ -35,7 +35,7 @@ namespace duneuro
     if (nrhs != 1) {
       mexErrMsgTxt("one input required");
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     plhs[0] = convert_ptr_to_mat(foo->makeDomainFunction().release());
     // note: mexLock has a lock count, call mexUnlock each time a function is destroyed
     mexLock();
@@ -64,7 +64,7 @@ namespace duneuro
       mexErrMsgTxt("the method does not return variables");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto* solution = convert_mat_to_ptr<Function>(prhs[2]);
     foo->solveEEGForward(extract_dipole(prhs[1]), *solution,
                          matlab_struct_to_parametertree(prhs[3]));
@@ -82,7 +82,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto* sol = convert_mat_to_ptr<Function>(prhs[1]);
     auto ae = foo->solveMEGForward(*sol, matlab_struct_to_parametertree(prhs[2]));
     plhs[0] = mxCreateDoubleMatrix(ae.size(), 1, mxREAL);
@@ -100,7 +100,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto tm = foo->computeEEGTransferMatrix(matlab_struct_to_parametertree(prhs[1]));
     plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
     std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), mxGetPr(plhs[0]));
@@ -117,7 +117,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto tm = foo->computeMEGTransferMatrix(matlab_struct_to_parametertree(prhs[1]));
     plhs[0] = mxCreateDoubleMatrix(tm->cols(), tm->rows(), mxREAL);
     std::copy(tm->data(), tm->data() + tm->rows() * tm->cols(), mxGetPr(plhs[0]));
@@ -136,7 +136,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     // the const cast below is a work around to fulfill the dense matrix interface.
     auto tm = extract_dense_matrix(const_cast<mxArray*>(prhs[1]));
     auto ae = foo->applyEEGTransfer(*tm, extract_dipoles(prhs[2]),
@@ -162,7 +162,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     // the const cast below is a work around to fulfill the dense matrix interface.
     auto tm = extract_dense_matrix(const_cast<mxArray*>(prhs[1]));
     auto ae = foo->applyMEGTransfer(*tm, extract_dipoles(prhs[2]),
@@ -186,7 +186,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto electrodes = foo->getProjectedElectrodes();
     plhs[0] = mxCreateDoubleMatrix(3, electrodes.size(), mxREAL);
     auto* pr = mxGetPr(plhs[0]);
@@ -206,7 +206,7 @@ namespace duneuro
       mexErrMsgTxt("the method does not return variables");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     foo->setElectrodes(extract_field_vectors(prhs[1]), matlab_struct_to_parametertree(prhs[2]));
   }
 
@@ -221,7 +221,7 @@ namespace duneuro
       mexErrMsgTxt("the method does not return variables");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     foo->setCoilsAndProjections(extract_field_vectors(prhs[1]), extract_projections(prhs[2]));
   }
 
@@ -236,7 +236,7 @@ namespace duneuro
       mexErrMsgTxt("the method returns a matrix");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     auto* sol = convert_mat_to_ptr<Function>(prhs[1]);
     auto ae = foo->evaluateAtElectrodes(*sol);
     plhs[0] = mxCreateDoubleMatrix(ae.size(), 1, mxREAL);
@@ -250,10 +250,10 @@ namespace duneuro
       return;
     }
     if (nrhs == 2) {
-      auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+      auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
       foo->write(matlab_struct_to_parametertree(prhs[1]));
     } else if (nrhs == 3) {
-      auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+      auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
       auto* sol = convert_mat_to_ptr<Function>(prhs[1]);
       foo->write(*sol, matlab_struct_to_parametertree(prhs[2]));
     } else {
@@ -270,7 +270,7 @@ namespace duneuro
       return;
     }
     if (nrhs == 1) {
-        auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+        auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
         foo->print_citations();
     }
     else {
@@ -284,7 +284,7 @@ namespace duneuro
       mexErrMsgTxt("please provide a handle to the object");
       return;
     }
-    auto* foo = convert_mat_to_ptr<MEEGDriverInterface<3>>(prhs[0]);
+    auto* foo = convert_mat_to_ptr<DriverInterface<3>>(prhs[0]);
     delete foo;
     mexUnlock();
   }
