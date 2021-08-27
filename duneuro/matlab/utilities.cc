@@ -4,7 +4,7 @@
 
 #include <duneuro/matlab/utilities.hh>
 
-#include <dune/common/std/memory.hh>
+#include <memory>
 
 namespace duneuro
 {
@@ -128,7 +128,7 @@ namespace duneuro
     int rows = mxGetM(arr);
     int cols = mxGetN(arr);
     double* ptr = mxGetPr(arr);
-    return Dune::Std::make_unique<DenseMatrix<double>>(cols, rows, ptr);
+    return std::make_unique<DenseMatrix<double>>(cols, rows, ptr);
   }
 
   bool extract_bool(const mxArray* arr)
