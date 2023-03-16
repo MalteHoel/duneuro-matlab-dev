@@ -46,6 +46,8 @@ namespace duneuro
    */
   std::vector<Dipole<double, 3>> extract_dipoles(const mxArray* arr);
 
+  std::vector<double> extract_vector(const mxArray* arr);
+
   /** \TODO docme! */
   std::vector<Dune::FieldVector<double, 3>> extract_field_vectors(const mxArray* arr);
 

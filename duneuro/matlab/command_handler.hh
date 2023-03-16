@@ -43,6 +43,22 @@ namespace duneuro
     static void print_citations(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
     /** \TODO docme! */
     static void delete_driver(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+   
+    // visualization functionality
+    static void volume_conductor_vtk_writer(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_add_vertex_data(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_add_vertex_data_gradient(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_add_cell_data(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_add_cell_data_gradient(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_write(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void volume_writer_delete(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    
+    static void point_vtk_writer(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void point_writer_add_scalar_data(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void point_writer_add_vector_data(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void point_writer_write(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    static void point_writer_delete(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
+    
     /** \TODO docme! */
     static void run_command(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]);
   };

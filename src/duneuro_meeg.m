@@ -55,12 +55,6 @@ classdef duneuro_meeg < handle
         function solution = apply_meg_transfer(this, transfer_matrix, dipoles, config)
             solution = duneuro_matlab('apply_meg_transfer', this.cpp_handle, transfer_matrix, dipoles, config);
         end
-        function write(this, func, config)
-            duneuro_matlab('write', this.cpp_handle, func.cpp_handle, config);
-        end
-        function write_mesh(this, config)
-            duneuro_matlab('write', this.cpp_handle, config);
-        end
         function print_citations(this)
             duneuro_matlab('print_citations', this.cpp_handle);
         end

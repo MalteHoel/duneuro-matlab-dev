@@ -76,6 +76,27 @@ namespace duneuro
     return output;
   }
 
+  std::vector<double> extract_vector(const mxArray* arr)
+  {
+    if(!mxIsDouble(arr)) {
+      mexErrMsgTxt("expected double matrix");
+    }
+    
+    int rows = mxGetM(arr);
+    int cols = mxGetN(arr);
+    int nr_entries = mxGetNumberOfElements(arr);
+    
+    if(cols != 1 && rows != 1) {
+      mexErrMsgTxt("expected data with either one column or row");
+    }
+    
+    const double* ptr = mxGetPr(arr);
+    std::vector<double> output(nr_entries);
+    std::copy(ptr, ptr + nr_entries, output.begin());
+    
+    return output;
+  }
+
   std::vector<Dune::FieldVector<double, 3>> extract_field_vectors(const mxArray* arr)
   {
     if (!mxIsDouble(arr)) {
